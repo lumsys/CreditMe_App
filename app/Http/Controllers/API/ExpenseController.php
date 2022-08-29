@@ -39,16 +39,15 @@ class ExpenseController extends Controller
 
     public function inviteUserToExpense(Request $request, $expenseId)
     {
-
-        $expense = expense::findOrFail($expenseId);
-        $input['expense_id'] = $expense->id;
-        $input['principal_id'] = Auth::user()->id;
-        $input['name'] = $expense->name;
-        $input['description'] = $expense->description;
-        $input['payable'] = $expense->amount;
-        $input['split_method_id'] = $request->splitting_method_id;
-        $input['user_id'] = $request->user_id;
-        $input['email'] = $request->input('email');
+      $expense = expense::findOrFail($expenseId);
+      $Id['expense_id'] = $expense->id;
+      $Id['principal_id'] = Auth::user()->id;
+      $Id['name'] = $expense->name;
+      $Id['description'] = $expense->description;
+      $Id['split_method_id'] = $request->splitting_method_id;
+      $Id['user_id'] = $request->user_id;
+      $Id['payable'] = $expense->amount;
+      $input['email'] = $request->input('email');
         $emails = $request->email;
         if($emails)
         {
@@ -64,28 +63,18 @@ class ExpenseController extends Controller
                 $message->to($user);
                 $message->subject('AzatMe: Send expense invite');
             });
-
           }
         }
         }
-        $userIds = $request->user_id;
-        if($userIds)
-        {
-          $userIdArray = (explode(';', $userIds));
-
-          foreach($userIdArray as $keys => $Id)
-          {
-
-          }
-        }
-
-        //Todo Gateway endpoints here...
-
-        $info = userExpense::create($input);
-        return response()->json($info);
-
-
+  //Todo Gateway endpoints here...
+  $info = userExpense::create($Id);
+  return response()->json($info);
+        
     }
+
+    private function userEmailToId($email){
+      return User::select('id')->where('email',$email)->first()->value('id');  
+  }
 
 public function allExpensesPerUser()
 {
@@ -99,18 +88,15 @@ public function allExpensesPerUser()
 
 public function getRandomUserExpense($user_id)
 {
-$getUserExpense = userExpense::where('principal_id', Auth::user()->id)->where('user_id', $user_id);
+$getUserExpense = userExpense::where('principal_id', Auth::user()->id)->where('user_id', $user_id)->get();
 return response()->json($getUserExpense);
 
 }
 
 public function getAllExpenses()
 {
-
   $getAdmin = Auth::user();
   $getAd = $getAdmin -> usertype;
-  //return $getAd;
-
   if($getAd === 'admin')
   {
   $getAllExpenses = UserExpense::all();
@@ -159,60 +145,67 @@ return response()->json(null);
         }
 
 
-    public function countExpensesPerUser()
+    // public function countExpensesPerUser()
+    // {
+    //     $getAuthUser = Auth::user();
+    //     $getUserExpenses = UserExpense::where('principal_id', $getAuthUser->id)->count();
+    //     return response()->json($getUserExpenses);
+    // }
+
+    // public function updateExpense(Request $request, $id)
+    // {
+    //     $update = Expense::find($id);
+    //     $update->update($request->all());
+    //     return response()->json($update);
+
+    // }
+
+    // public function deleteInvitedExpenseUser($user_id)
+    // {
+
+    //     $deleteInvitedExpenseUser = userExpense::findOrFail($user_id);
+    //     if ($deleteInvitedExpenseUser)
+    //         //$userDelete = Expense::where('user', $user)
+    //         $deleteInvitedExpenseUser->delete();
+    //     else
+    //         return response()->json(null);
+    // }
+
+
+    // public function deleteExpense($id)
+    // {
+    //     //$user = Auth()->user();
+    //     $deleteExpense = Expense::findOrFail($id);
+    //     $deleteExpenses = expense::where('user_id', Auth::user()->id)->where('id', $deleteExpense);
+    //     if ($deleteExpenses)
+    //         //$userDelete = Expense::where('user', $user)
+    //         $deleteExpenses->delete();
+    //     else
+    //         return response()->json(null);
+    // }
+
+    public function BulkUploadInviteUsersToExpense(Request $request, $expenseId)
     {
-        $getAuthUser = Auth::user();
-        $getUserExpenses = UserExpense::where('principal_id', $getAuthUser->id)->count();
-        return response()->json($getUserExpenses);
-    }
-
-    public function updateExpense(Request $request, $id)
-    {
-        $update = Expense::find($id);
-        $update->update($request->all());
-        return response()->json($update);
-
-    }
-
-    public function deleteInvitedExpenseUser($user_id)
-    {
-
-        $deleteInvitedExpenseUser = userExpense::findOrFail($user_id);
-        if ($deleteInvitedExpenseUser)
-            //$userDelete = Expense::where('user', $user)
-            $deleteInvitedExpenseUser->delete();
-        else
-            return response()->json(null);
-    }
-
-
-    public function deleteExpense($id)
-    {
-        //$user = Auth()->user();
-        $deleteExpense = Expense::findOrFail($id);
-        $deleteExpenses = expense::where('user_id', Auth::user()->id)->where('id', $deleteExpense);
-        if ($deleteExpenses)
-            //$userDelete = Expense::where('user', $user)
-            $deleteExpenses->delete();
-        else
-            return response()->json(null);
-    }
-
-    public function BulkUploadInviteUsersToExpense(Request $request)
-    {
-        $file = $request->file('file_upload');
+      
+        $expense = expense::findOrFail($expenseId);
+        $request->validate([
+          'file' => 'required|file'
+        ]);
+        $file = $request->file('file');
         $extension = $file->extension();
         $file_name = 'user_to_expense_' . time() . '.' . $extension;
         $file->storeAs(
             'excel bulk import', $file_name
         );
-        $result = ProcessBulkExcel::dispatchNow($file_name);
+        $auth_user_id = Auth::user()->id;
+        $result = ProcessBulkExcel::dispatchNow($file_name, $expense, $auth_user_id);
+        dd($result);
         if ($result) {
             $message = "Excel record is been uploaded";
-            return response()->json($message,HTTP_OK);
+            return response()->json($message);
         } else {
             $message = "Try file upload again";
-            return response()->json($message, HTTP_OK);
+            return response()->json($message);
         }
     }
 }
