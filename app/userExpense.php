@@ -4,7 +4,10 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-//use illuminate\Database\Eloquent\Factories\HasFactory;
+use illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
+use Auth;
+
 
 class userExpense extends Model
 {
@@ -22,7 +25,17 @@ class userExpense extends Model
         'payed',
         'payed_date',
         'status',
-        'split_method_id'
+        'split_method_id',
+        'bankName',
+        'bankCode',
+        'account_number',
+        'percentage',
+        'percentage_per_user',
+        'actualAmount',
+        'email',
+        'uique_code',
+        'name',
+        'description'
 
         
     ];
@@ -40,5 +53,16 @@ class userExpense extends Model
     public function Uxerexpense()
     {
         return $this->hasOne(splittingMethod::class, 'split_method_id');
+    }
+
+    protected $table = "user_expenses";
+
+    public static function getuserExpense($request)
+    {
+        $dateStart = $request->input('startDate');
+        $dateEnd = $request->input('endDate');
+        //$Auth_user = Auth::user()->id;
+        $records = userExpense::whereBetween('created_at', [$dateStart, $dateEnd])->select('Id','name', 'email', 'description', 'actualAmount', 'payable', 'bankName', 'account_number', 'created_at', 'transactionDate')->get();
+        return $records;
     }
 }

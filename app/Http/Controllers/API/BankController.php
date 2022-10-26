@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests\BankRequest;
 use App\Bank;
 use Auth;
+use Illuminate\Support\Facades\Http;
 
 class BankController extends Controller
 {
@@ -56,21 +57,30 @@ class BankController extends Controller
 }
 
 
-public function ngnBanksApi()
+public function ngnBanksApiList()
 {
 
-    $httpClient = new \GuzzleHttp\Client();
-    $request = $httpClient->get("https://ellevate-app.herokuapp.com/banks?affiliateCode=ENG");
-if ($request){
-        $clients =  json_decode($request->getBody()->getContents())->get();
-        return $clients;
-    }else{
-        //
+    $current_timestamp= now();
+      $timestamp = strtotime($current_timestamp);
+      $secret = env('PayThru_App_Secret');
+      $hash = hash('sha512', $timestamp . $secret);
+     
+     // $hashSign = hash('sha512', $amt . $secret);
+      $PayThru_AppId = env('PayThru_ApplicationId');
+   
+    $response = Http::withHeaders([
+        'Content-Type' => 'application/json',
+        'ApplicationId' => $PayThru_AppId,
+        'Timestamp' => $timestamp,
+        'Signature' => $hash,
+  ])->get('http://sandbox.paythru.ng/cardfree/bankinfo/listBanks');
+    //return $response;
+    if($response->Successful())
+    {
+      $banks = json_decode($response->body(), true);
+   
     }
-        
-
-    
-
+    return $banks;
 
 }
 

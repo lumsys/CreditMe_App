@@ -20,7 +20,15 @@ class UserGroup extends Model
         'amount_payed',
         'payed_date',
         'status',
-        'split_method_id'
+        'split_method_id',
+        'bankName',
+        'bankCode',
+        'account_number',
+        'percentage',
+        'percentage_per_user',
+        'actualAmount',
+        'email',
+        'uique_code'
 
         
     ];

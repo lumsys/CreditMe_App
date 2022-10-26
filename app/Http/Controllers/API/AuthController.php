@@ -13,6 +13,9 @@ use Carbon\Carbon;
 use App\User;
 use Mail;
 use Log;
+use App\Http\Requests\BusinessRequest;
+use App\Business;
+
 
 
 class AuthController extends Controller
@@ -25,6 +28,7 @@ class AuthController extends Controller
             'name' => 'required|min:3|max:50',
             'email' => 'required|email',
             'usertype' => 'string',
+            'company_name' => 'string',
             'phone' => 'string|unique:users',
             'password' => 'required|confirmed|min:6',
             'password_confirmation' => '|required|same:password',
@@ -43,9 +47,12 @@ class AuthController extends Controller
         $user = new User([
             'name' => $request->name,
             'email' => $request->email,
+            'registration_code' => Str::random(10),
             'usertype' => $request->usertype,
+            'company_name' => $request->company_name,
             'phone'=> preg_replace('/^0/','+234',$request->phone),
             'password' => Hash::make($request->password)
+        
         ]);
         $user->save();
         return response()->json(['message' => 'user has been registered', 'data'=>$user], 200);       
@@ -143,7 +150,57 @@ class AuthController extends Controller
         }
     }
 
-    public function getProfile(){
+
+    public function addUsersToBusiness(Request $request, $id)
+    {
+        $getBusiness = Auth::user();
+        $get_user = User::where('id',$id)->first();
+        
+        $updated = $get_user->fill(['company_name' => $getBusiness->company_name])->save();
+          
+          if ($updated){
+            
+            return response()->json(['status'=>'true', 'message'=>"User added successfully"]);
+          }else {
+            return response()->json(['status'=>'false', 'data'=>[]]);
+        }
+    }
+
+
+    public function removeUsersFromABusiness(Request $request, $id)
+    {
+        $getBusiness = Auth::user()->usertype;
+        $get_user = User::where('id',$id)->first();
+        if($getBusiness == 'merchant')
+        {
+            $get_user->update(['company_name' => Null]);
+            return response()->json(['status'=>'true', 'message'=>"profile updated successfully"]);
+            
+            
+        }else{
+            return response()->json('User is not a merchant, so you are not authorize to perform this action');
+                    } 
+       
+    }
+
+    public function listAllBusinessUsers()
+    {
+        $Business = Auth::user();
+        $getBusiness = $Business -> usertype;
+            if($getBusiness === 'merchant')
+                {
+                    $getAllBusinessUsers = User::where('company_name', $Business->company_name)->where('usertype', 'user')->get();
+         return response()->json($getAllBusinessUsers);
+                }
+            else{
+        return response()->json('User is not a merchant, so you are not authorize to perform this action');
+                }   
+    }
+
+
+
+    public function getProfile()
+    {
         $id = Auth::user();
         $getProfileFirstt = user::where('id', $id->id)->get();
         return response()->json($getProfileFirstt);
@@ -168,6 +225,29 @@ class AuthController extends Controller
     $user->saveOrFail();
     return response()->json(['success' => true, $user]);
     }
+
+
+    // public function createBusiness(BusinessRequest $request)
+    // {
+
+    //     $business = new Business([
+    //         'business_name' => $request->business_name,
+    //         'business_email' => $request->business_email,
+    //         'business_code' => Str::random(10),
+    //         'business_address' => $request->business_address,
+    //         'owner_id' => Auth::user()->id,
+    //     ]);
+    //         if($request->business_logo && $request->business_logo->isValid())
+    //         {
+    //             $file_name = time().'.'.$request->business_logo->extension();
+    //             $request->business_logo->move(public_path('images'),$file_name);
+    //             $path = "images/$file_name";
+    //             $business->business_logo = $path;
+    //         }
+            
+    //     return response()->json($business);
+
+    // }
    
 
 }

@@ -26,6 +26,8 @@ Route::namespace('API')->group(function () {
     Route::post('reset', 'ForgotController@reset');
     Route::get('ngn', 'BankController@ngnBanksApi');
     Route::get('getAllUser', 'AuthController@getAllUser');
+    
+  
 
    Route::middleware(['auth:api'])->group(function () {
     // User Update
@@ -34,16 +36,34 @@ Route::namespace('API')->group(function () {
     Route::put('updateProfile', 'AuthController@updateProfile');
     Route::put('updateUsertype', 'AuthController@updateUsertype');
     Route::post('category', 'ExpenseCategoryController@category');
+
+    //Buisness
+    Route::post('createBusiness', 'BusinessController@createBusiness');
+    Route::get('list-all-business-users', 'AuthController@listAllBusinessUsers');
+    Route::put('update-business/{id}', 'BusinessController@updateABusiness');
+
+    //B2B Transactions
+    Route::post('create-product', 'BusinessTransactionController@creatProduct');
+    Route::post('initiate-business-transaction/{product_id}', 'BusinessTransactionController@startBusinessTransaction');
+    Route::post('create-option', 'MotoController@moto');
+    Route::post('get-option', 'MotoController@getMotoMethod');
+
+    //Customer
+    Route::post('createCustomer/{business_code}', 'CustomerController@createCustomer');
+    Route::put('updateCustomer/{id}', 'CustomerController@updateCustomer');
+    
     
     //Expense
     Route::post('createExpense', 'ExpenseController@createExpense');
-    Route::post('userExpense/{expenseId}', 'ExpenseController@inviteUserToExpense');
+    Route::post('userExpense/{expenseUniqueCode}', 'ExpenseController@inviteUserToExpense');
     Route::post('bulkUserExpense/{expenseId}', 'ExpenseController@BulkUploadInviteUsersToExpense');
     Route::put('updateExpense/{id}', 'ExpenseController@updateExpense');
     Route::get('getAllExpenses', 'ExpenseController@getAllExpenses');
     Route::get('getRandomUserExpense/{user_id}', 'ExpenseController@getRandomUserExpense');
     Route::delete('deleteInvitedExpenseUser/{user_id}', 'ExpenseController@deleteInvitedExpenseUser');
     Route::delete('deleteExpense/{id}', 'ExpenseController@deleteExpense');
+    Route::post('/export-excel', 'ExpenseController@exportExpenseToExcel');
+    Route::post('/export-csv', 'ExpenseController@exportExpenseToCsv');
     
     //Group
     Route::post('createGroup', 'GroupController@createGroup');
@@ -59,6 +79,8 @@ Route::namespace('API')->group(function () {
     Route::post('addBank', 'BankController@addBank');
     Route::get('getBankPerUser', 'BankController@getBankPerUser');
     Route::delete('bank/{id}', 'BankController@bank');
+    Route::get('getBanks', 'BankController@ngnBanksApiList');
+    
     
     //Sub Category
     Route::put('updateSubCategory/{id}', 'ExpenseSubCategoryController@updateSubCategory');
@@ -92,4 +114,6 @@ Route::namespace('API')->group(function () {
     Route::post('/webhook', 'ExpenseController@webhookResponse');
     
        });
-   });       
+
+    }); 
+       

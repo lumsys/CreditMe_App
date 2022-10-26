@@ -21,6 +21,7 @@ class Expense extends Model
         'amount',
         'description'
         
+        
     ];
 
     public function user()

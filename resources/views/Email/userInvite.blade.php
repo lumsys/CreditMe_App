@@ -347,6 +347,8 @@
                         
                         To get the full feature of this app kindly click this link to signup </p>
 
+                        <p>Meanwhile, kindly make payment via this link: {{$slip['paylink']}}</p>
+
                          
                         <table role="presentation" border="0" cellpadding="0" cellspacing="0" class="btn btn-primary">
                           <tbody>

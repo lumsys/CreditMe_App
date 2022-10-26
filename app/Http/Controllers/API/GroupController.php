@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Requests\GroupRequest;
+use App\Http\Requests\userGroupRequest;
 use App\Expense;
 use Illuminate\Support\Str;
 use Auth;
@@ -32,13 +33,16 @@ class GroupController extends Controller
         }
         
         
-        public function inviteUsersToGroup(Request $request, $groupId)
+        public function inviteUsersToGroup(userGroupRequest $request, $groupId)
         {               
         $expense = expense::find($groupId);
         $input['user_id'] = $request->user_id;
         $input['group_id'] = $expense->id;
         $input['reference_id'] = Auth::user()->id;
         $input['split_method_id'] = $request->splitting_method_id;
+        $input['bankName'] = $request->bank;
+        $input['bankCode'] = $request->code;
+        $input['account_number'] = $request->account_number;
         $input['amount_payable'] = $expense->amount;
         $input['email'] = $request->input('email');
         $emails = $request->email;
